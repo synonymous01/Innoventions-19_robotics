@@ -1,0 +1,7 @@
+{
+    "sketch": "round3_main/round3_code/round3_code.ino",
+    "port": "COM12",
+    "board": "arduino:avr:nano",
+    "configuration": "cpu=atmega328",
+    "programmer": "AVRISP mkII"
+}

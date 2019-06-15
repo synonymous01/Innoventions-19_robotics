@@ -1,0 +1,3 @@
+BT pin HIGH causes bt program to load,
+LINE pin HIGH causes line following program to load,
+whereas both pins LOW causes wall following program to load
