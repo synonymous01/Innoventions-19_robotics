@@ -1,5 +1,7 @@
 #include "header_main.h"
-#include <SoftwareSerial.h>
+#include <NewPing.h>
+
+NewPing wallFollowingSensor;
 
 
 void setup() {
@@ -14,6 +16,8 @@ void setup() {
   pinMode(BT, INPUT);
   pinMode(LINE, INPUT);
   pinMode(WALL, INPUT);
+  turningTimer.setTimeOutTime(1000);
+  turningTimer.reset();
 }
 
 
@@ -28,7 +32,6 @@ void writeMotors(int state_rt_fwd, int state_lt_fwd, int state_rt_bkd, int state
   digitalWrite(lt_fwd, state_lt_fwd);
   digitalWrite(rt_bkd, state_rt_bkd);
   digitalWrite(lt_bkd, state_lt_bkd);
-}
 
 
 void setDir(int direction){
