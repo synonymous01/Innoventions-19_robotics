@@ -1,5 +1,22 @@
-#include <SoftwareSerial.h>
+void bt_main(){
+    
+    int state  = bluetooth.read()
 
-SoftwareSerial bluetooth(rx, tx);
+    switch(state){
+        case 13:
+            setDir(FWD);
+        break;
 
-void bt_main(){}
+        case 14:
+            setDir(BKD);
+        break;
+
+        case 15:
+            setDir(RHT);
+        break;
+
+        case 16:
+            setDir(LFT);
+        break;
+    }
+}

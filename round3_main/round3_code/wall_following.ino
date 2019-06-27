@@ -1,6 +1,3 @@
-#include "round3_code.ino"
-
-
 void wall_main(){
     unsigned long distance;
     setDir(FWD);

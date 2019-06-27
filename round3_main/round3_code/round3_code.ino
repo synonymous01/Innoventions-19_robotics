@@ -1,6 +1,8 @@
 #include "header_main.h"
 #include <NewPing.h>
+#include <SoftwareSerial.h>
 
+SoftwareSerial bluetooth(rx, tx);
 NewPing wallFollowingSensor;
 
 
@@ -32,7 +34,7 @@ void writeMotors(int state_rt_fwd, int state_lt_fwd, int state_rt_bkd, int state
   digitalWrite(lt_fwd, state_lt_fwd);
   digitalWrite(rt_bkd, state_rt_bkd);
   digitalWrite(lt_bkd, state_lt_bkd);
-
+}
 
 void setDir(int direction){
   switch(direction){
@@ -50,6 +52,18 @@ void setDir(int direction){
 
     case LFT_FWD:
       writeMotors(HIGH, LOW, LOW, LOW);
+    break;
+
+    case RHT:
+      writeMotors(LOW, HIGH, HIGH, LOW);
+    break;
+
+    case LFT:
+      writeMotors(HIGH, LOW, LOW, HIGH);
+    break;
+
+    case default:
+      writeMotors(LOW, LOW, LOW, LOW);
     break;
   }
 }
