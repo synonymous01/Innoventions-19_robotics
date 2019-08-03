@@ -1,3 +1,0 @@
-void line_main(){
-    
-}

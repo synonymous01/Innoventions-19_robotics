@@ -1,5 +1,5 @@
 {
-    "sketch": "round3_main/round3_code/round3_code.ino",
+    "sketch": "basic/basic.ino",
     "port": "COM12",
     "board": "arduino:avr:nano",
     "configuration": "cpu=atmega328",
