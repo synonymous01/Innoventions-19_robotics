@@ -5,7 +5,7 @@
             "includePath": [
                 "C:\\Program Files (x86)\\Arduino\\hardware\\arduino\\avr\\libraries\\SoftwareSerial\\src",
                 "${workspaceFolder}/**",
-                "C:/Users/Ibrahim/Desktop/Innoventions'19/**",
+                "C:/Users/Ibrahim/Desktop/various projects/Innoventions'19/**",
                 "C:\\Users\\Ibrahim\\Documents\\Arduino\\**",
                 "C:\\Users\\Ibrahim\\Desktop\\various projects\\Arduino\\**",
                 "C:\\Program Files (x86)\\Arduino\\hardware\\arduino\\avr\\**",

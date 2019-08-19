@@ -5,39 +5,39 @@ void writeMotors(int state_rt_fwd, int state_lt_fwd, int state_rt_bkd, int state
 void bt_main();
 void line_main();
 void wall_main();
+unsigned long long getDistance();
 
 
 // sensor (jumper) pins
-#define BT 20
-#define WALL 22
+#define BT 11 // d2 d3 d4 for ir
+#define WALL 12 // d5 d6 us 
 
 // sensor pins
-#define trig 12
-#define echo 13
-#define rx 0
-#define tx 1
-#define send 23
-#define reci 24
+#define trig 5
+#define echo 6
+#define rx 8
+#define tx 7
+#define left 2
+#define right 3
 
-#define FWD 0
-#define BKD 1
+#define FWD 70
+#define BKD 66
 #define RHT_FWD 2
 #define LFT_FWD 3
-#define RHT 4
-#define LFT 5
+#define RHT 82
+#define LFT 76
 
 //L293D pins
-#define rt_fwd 15
-#define lt_fwd 16
-#define lt_bkd 18
-#define rt_bkd 19
+#define rt_fwd A2
+#define lt_fwd A4
+#define lt_bkd A1
+#define rt_bkd A5
+#define enable A3
 
 
-#include <NewPing.h>
 #include <SoftwareSerial.h>
 // HEADER END
-SoftwareSerial bluetooth(rx, tx);
-NewPing wallFollowingSensor(trig, echo);
+SoftwareSerial bluetooth(7, 8);
 
 
 void setup() {
@@ -47,22 +47,25 @@ void setup() {
   pinMode(lt_bkd, OUTPUT);
   pinMode(trig, OUTPUT);
   pinMode(echo, INPUT);
-  pinMode(send, OUTPUT);
-  pinMode(reci, OUTPUT);
+  pinMode(right, OUTPUT);
+  pinMode(left, OUTPUT);
   pinMode(BT, INPUT);
+  pinMode(enable, OUTPUT);
   pinMode(WALL, INPUT);
-//  turningTimer.setTimeOutTime(1000);
-  //turningTimer.reset();
+  Serial.begin(9600);
+  bluetooth.begin(9600);
 }
 
 
 void loop() {
-  digitalRead(BT) ? bt_main() : digitalRead(WALL) ? wall_main() : line_main();
+  digitalWrite(enable, HIGH);
+  digitalRead(BT) == HIGH? bt_main() : digitalRead(WALL) == HIGH? wall_main() : line_main();
   }
 
 
 void writeMotors(int state_rt_fwd, int state_lt_fwd, int state_rt_bkd, int state_lt_bkd)
 {
+  // Serial.println("Function writeMotors running with parameters %i, %i, %i, %i.", state_rt_fwd, state_lt_fwd, state_rt_bkd, state_lt_bkd);
   digitalWrite(rt_fwd, state_rt_fwd);
   digitalWrite(lt_fwd, state_lt_fwd);
   digitalWrite(rt_bkd, state_rt_bkd);
@@ -102,45 +105,120 @@ void setDir(int direction){
 }
 
 void line_main(){
-    
+   while(true)
+   {
+     int Left = digitalRead(left);
+     int Right = digitalRead(right);
+     
+     if( (Left==0 && Right==1) == 1) LEFT();
+     else if((Right == 0 && Left == 1) == 1) RIGHT();
+   }
 }
 
+void LEFT (void)
+{
+  setDir(RHT_FWD);
+  int Left, Right;
+  
+  while(Left == 0)
+  {
+   Left = digitalRead(left);
+   Right = digitalRead(right);
+   if(Right == 0)
+   {
+     int lprev = Left;
+     int rprev = Right;
+     setDir(0);
+     while(((lprev==Left)&&(rprev==Right))==1)
+     {
+        Left = digitalRead(left);
+        Right = digitalRead(right);
+     }
+   }
+   setDir(RHT_FWD); 
+  }
+  setDir(FWD);
+}
+
+void RIGHT (void)
+{
+  int Right, Left;
+  setDir(LFT_FWD);
+  while(Right==0)
+  {
+   Left=digitalRead(left);
+   Right=digitalRead(right);
+   if(Left==0)
+   {
+     int lprev=Left;
+     int rprev=Right;
+    setDir(0);
+     while(((lprev==Left)&&(rprev==Right))==1)
+     {
+        Left=digitalRead(left);
+        Right=digitalRead(right);
+     }
+   }
+   setDir(LFT_FWD);
+   }
+  setDir(FWD);
+}
 
 void bt_main(){
+    int state;
     
-    int state  = bluetooth.read();
-
+    if(bluetooth.available()) {
+      state = bluetooth.read();
+//      Serial.println(state);
+    }
+    
     switch(state){
-        case 13:
+        case 70:
             setDir(FWD);
-        break;
+            break;
 
-        case 14:
+        case 66:
             setDir(BKD);
-        break;
+            break;
 
-        case 15:
+        case 82:
             setDir(RHT);
-        break;
+            break;
 
-        case 16:
+        case 76:
             setDir(LFT);
-        break;
+            break;
+        case 83:
+            setDir(0);
+            break;
     }
 }
 
 void wall_main(){
-    unsigned long distance;
+    unsigned long long distance;
     setDir(FWD);
-    distance = wallFollowingSensor.ping_cm();
+    distance = getDistance();
    while (distance != 15){
        while (distance > 15) {
-           distance = wallFollowingSensor.ping_cm();
            setDir(RHT_FWD);
+           
+           distance = getDistance();
        }
        while (distance < 15) {
-           distance = wallFollowingSensor.ping_cm();
            setDir(LFT_FWD);
+           distance = getDistance();
        }
     }     
+}
+
+unsigned long long getDistance(){
+    unsigned long long duration, distance;
+    digitalWrite(trig, LOW);
+    delayMicroseconds(2);
+    digitalWrite(trig, HIGH);
+    delayMicroseconds(5);
+    digitalWrite(trig, LOW);
+    duration = pulseIn(echo, HIGH);
+    distance = duration * 0.034 / 2;
+    return distance;
 }
