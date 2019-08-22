@@ -13,8 +13,8 @@ unsigned long long getDistance();
 #define WALL 12 // d5 d6 us 
 
 // sensor pins
-#define trig 5
-#define echo 6
+#define trig 6
+#define echo 5
 #define rx 8
 #define tx 7
 #define left 2
@@ -211,7 +211,7 @@ void wall_main(){
     }     
 }
 
-unsigned long long getDistance(){
+long getDistance(){
     unsigned long long duration, distance;
     digitalWrite(trig, LOW);
     delayMicroseconds(2);
