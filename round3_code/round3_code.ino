@@ -5,7 +5,7 @@ void writeMotors(int state_rt_fwd, int state_lt_fwd, int state_rt_bkd, int state
 void bt_main();
 void line_main();
 void wall_main();
-unsigned long long getDistance();
+long getDistance();
 
 
 // sensor (jumper) pins
@@ -34,17 +34,34 @@ unsigned long long getDistance();
 #define rt_bkd A5
 #define enable A3
 
+//extra only for the led
+#define d7 13
+#define d6 A0
+#define d5 11
+#define d4 12
+#define e 10
+#define rs 9
 
 #include <SoftwareSerial.h>
+#include <SoftPWM.h>
+#include <SoftPWM_timer.h>
+#include <LiquidCrystal.h>
+#include <string.h>
+
+
+
 // HEADER END
 SoftwareSerial bluetooth(7, 8);
+LiquidCrystal lcd(rs, e, d4, d5, d6, d7);
+
 
 
 void setup() {
-  pinMode(rt_fwd, OUTPUT);
-  pinMode(lt_fwd, OUTPUT);
-  pinMode(rt_bkd, OUTPUT);
-  pinMode(lt_bkd, OUTPUT);
+  SoftPWMBegin();
+  SoftPWMSet(rt_fwd, 0);
+  SoftPWMSet(lt_fwd, 0);
+  SoftPWMSet(rt_bkd, 0);
+  SoftPWMSet(lt_bkd, 0);
   pinMode(trig, OUTPUT);
   pinMode(echo, INPUT);
   pinMode(right, OUTPUT);
@@ -54,52 +71,77 @@ void setup() {
   pinMode(WALL, INPUT);
   Serial.begin(9600);
   bluetooth.begin(9600);
+  randomSeed(analogread(A0));
+  lcd.begin(16,2);
+  lcd.clear();
+  lcd.home();
 }
 
 
 void loop() {
-  digitalWrite(enable, HIGH);
-  digitalRead(BT) == HIGH? bt_main() : digitalRead(WALL) == HIGH? wall_main() : line_main();
+  // digitalWrite(enable, HIGH);
+  // digitalRead(BT) == HIGH ? bt_main() : digitalRead(WALL) == HIGH ? wall_main() : line_main();
+  testPWM();
+  bt_main();
+  rand
   }
+
+
+void testPWM()
+{
+  int state;
+    
+  if(bluetooth.available()) {
+    state = bluetooth.read();
+  }
+  
+  if (state < 58){
+  state -= 48;
+  Serial.print("state before mapped is: " + String(state) + "\n");
+  state = map(state, 0, 9, 0, 255);
+  Serial.print("writing to enable with state: " + String(state) + "\n");
+  analogWrite(enable, state);
+  }
+}
 
 
 void writeMotors(int state_rt_fwd, int state_lt_fwd, int state_rt_bkd, int state_lt_bkd)
 {
   // Serial.println("Function writeMotors running with parameters %i, %i, %i, %i.", state_rt_fwd, state_lt_fwd, state_rt_bkd, state_lt_bkd);
-  digitalWrite(rt_fwd, state_rt_fwd);
-  digitalWrite(lt_fwd, state_lt_fwd);
-  digitalWrite(rt_bkd, state_rt_bkd);
-  digitalWrite(lt_bkd, state_lt_bkd);
+  SoftPWMSetPercent(rt_fwd, state_rt_fwd);
+  SoftPWMSetPercent(lt_fwd, state_lt_fwd);
+  SoftPWMSetPercent(rt_bkd, state_rt_bkd);
+  SoftPWMSetPercent(lt_bkd, state_lt_bkd);
 }
 
 void setDir(int direction){
   switch(direction){
     case FWD:
-      writeMotors(HIGH, HIGH, LOW, LOW);
+      writeMotors(100, 100, 0, 0);
     break;
 
     case BKD:
-      writeMotors(LOW, LOW, HIGH, HIGH);
+      writeMotors(0, 0, 100, 100);
     break;
 
     case RHT_FWD:
-      writeMotors(LOW, HIGH, LOW, LOW);
+      writeMotors(50, 100, 0, 0);
     break;
 
     case LFT_FWD:
-      writeMotors(HIGH, LOW, LOW, LOW);
+      writeMotors(100, 50, 0, 0);
     break;
 
     case RHT:
-      writeMotors(LOW, HIGH, HIGH, LOW);
+      writeMotors(0, 100, 100, 0);
     break;
 
     case LFT:
-      writeMotors(HIGH, LOW, LOW, HIGH);
+      writeMotors(100, 0, 0, 100);
     break;
 
     default:
-      writeMotors(LOW, LOW, LOW, LOW);
+      writeMotors(0, 0, 0, 0);
     break;
   }
 }
@@ -172,6 +214,13 @@ void bt_main(){
 //      Serial.println(state);
     }
     
+    if (state < 58){
+      state -= 48;
+      Serial.print("state before mapped is: " + String(state) + "\n");
+      state = map(state, 0, 9, 0, 255);
+      Serial.print("writing to enable with state: " + String(state) + "\n");
+      analogWrite(enable, state);
+    }
     switch(state){
         case 70:
             setDir(FWD);
@@ -212,7 +261,7 @@ void wall_main(){
 }
 
 long getDistance(){
-    unsigned long long duration, distance;
+    unsigned long duration, distance;
     digitalWrite(trig, LOW);
     delayMicroseconds(2);
     digitalWrite(trig, HIGH);
@@ -221,4 +270,32 @@ long getDistance(){
     duration = pulseIn(echo, HIGH);
     distance = duration * 0.034 / 2;
     return distance;
+}
+
+
+void coolPrint(){
+  char* c1output;
+  char * c2output;
+  int rand1, rand2;
+  for (int i = 0; i < 45; i++{
+    for (int j = 0; i < 16; i++){
+        rand1 = random(65, 91);
+        rand2 = random(65, 91);
+        strcat(c1output, char(rand1));
+        strcat(c2output, char(rand2));
+    }
+    specialPrint(0, 0, c1output);
+    specialPrint(0, 1, c2output);
+
+    if(i == 15){
+      for (int k = 0; k < 2; k++){
+        specialPrint()
+      }
+    }
+
+}    
+
+specialPrint(int col, int row, char *str){
+  lcd.setCursor(col, row);
+  lcd.print(str);
 }
