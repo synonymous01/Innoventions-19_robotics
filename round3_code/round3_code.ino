@@ -24,6 +24,8 @@ long getDistance();
 #define BKD 66
 #define RHT_FWD 2
 #define LFT_FWD 3
+#define SOFT_RHT 4
+#define SOFT_LFT
 #define RHT 82
 #define LFT 76
 
@@ -35,26 +37,21 @@ long getDistance();
 #define enable A3
 
 //extra only for the led
-#define d7 13
-#define d6 A0
-#define d5 11
-#define d4 12
-#define e 10
-#define rs 9
+const int rs = 9, en = 10, d4 = 12, d5 = 11, d6 = A0, d7 = 13;
 
 #include <SoftwareSerial.h>
 #include <SoftPWM.h>
 #include <SoftPWM_timer.h>
 #include <LiquidCrystal.h>
 #include <string.h>
-
+#include <stdlib.h>
 
 
 // HEADER END
 SoftwareSerial bluetooth(7, 8);
-LiquidCrystal lcd(rs, e, d4, d5, d6, d7);
+LiquidCrystal lcd(rs, en, d4, d5, d6, d7);
 
-
+String alphabets[26] = {"A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"};
 
 void setup() {
   SoftPWMBegin();
@@ -71,7 +68,7 @@ void setup() {
   pinMode(WALL, INPUT);
   Serial.begin(9600);
   bluetooth.begin(9600);
-  randomSeed(analogread(A0));
+  randomSeed(1);
   lcd.begin(16,2);
   lcd.clear();
   lcd.home();
@@ -81,9 +78,10 @@ void setup() {
 void loop() {
   // digitalWrite(enable, HIGH);
   // digitalRead(BT) == HIGH ? bt_main() : digitalRead(WALL) == HIGH ? wall_main() : line_main();
-  testPWM();
-  bt_main();
-  rand
+  // testPWM();
+  // bt_main();
+  coolPrint();
+  delay(50000);
   }
 
 
@@ -125,12 +123,20 @@ void setDir(int direction){
     break;
 
     case RHT_FWD:
-      writeMotors(50, 100, 0, 0);
+      writeMotors(25 , 100, 0, 0);
     break;
 
     case LFT_FWD:
-      writeMotors(100, 50, 0, 0);
+      writeMotors(100, 25, 0, 0);
     break;
+
+    case SOFT_RHT:
+      writeMotors(50, 100, 0, 0);
+      break;
+    
+    case SOFT_LFT:
+      writeMotors(100, 50, 0, 0);
+      break;
 
     case RHT:
       writeMotors(0, 100, 100, 0);
@@ -274,28 +280,52 @@ long getDistance(){
 
 
 void coolPrint(){
-  char* c1output;
-  char * c2output;
+  String c1output;
+  String c2output;
   int rand1, rand2;
-  for (int i = 0; i < 45; i++{
-    for (int j = 0; i < 16; i++){
-        rand1 = random(65, 91);
-        rand2 = random(65, 91);
-        strcat(c1output, char(rand1));
-        strcat(c2output, char(rand2));
-    }
-    specialPrint(0, 0, c1output);
-    specialPrint(0, 1, c2output);
-
-    if(i == 15){
-      for (int k = 0; k < 2; k++){
-        specialPrint()
-      }
+  for (int i = 0; i < 25; i++){
+    c1output = "";
+    c2output = "";
+    for (int j = 0; j < 16; j++){
+        rand1 = rand() % 26;
+        rand2 = rand() % 26;
+        Serial.println(rand2);
+        c1output += alphabets[rand1];
+        c2output += alphabets[rand2];
+        Serial.println(c2output);
     }
 
+    // Serial.println(c2output);
+    lcd.setCursor(0, 0);
+    lcd.print(c1output);
+    lcd.setCursor(0, 1);
+    lcd.print(c2output);
+
+    printPartial13(5, 'X', i, 0);
+    printPartial13(10, 'I', i, 1);
+    printPartial13(15, 'I', i, 2);
+    printPartial13(20, 'I', i, 3);
+    // delay(5);
+  }
+  lcd.setCursor(0, 0);
+  lcd.print(" XIII XIII XIII ");
+  
+  lcd.setCursor(0, 1);
+  lcd.print(" XIII XIII XIII ");
 }    
 
-specialPrint(int col, int row, char *str){
+
+void printPartial13(int check, char str, int inc, int count){
+  if (inc >= check){
+    for (int k = 0; k < 2; k++){
+        specialPrint(1 + count, k, str);
+        specialPrint(6 + count, k, str);
+        specialPrint(11 + count, k, str);      
+    }
+  }
+}
+
+void specialPrint(int col, int row, char str){
   lcd.setCursor(col, row);
   lcd.print(str);
 }
