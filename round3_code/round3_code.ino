@@ -25,7 +25,7 @@ long getDistance();
 #define RHT_FWD 2
 #define LFT_FWD 3
 #define SOFT_RHT 4
-#define SOFT_LFT
+#define SOFT_LFT 5
 #define RHT 82
 #define LFT 76
 
@@ -49,7 +49,8 @@ const int rs = 9, en = 10, d4 = 12, d5 = 11, d6 = A0, d7 = 13;
 
 // HEADER END
 SoftwareSerial bluetooth(7, 8);
-LiquidCrystal lcd(rs, en, d4, d5, d6, d7);
+// LiquidCrystal lcd(rs, en, d4, d5, d6, d7);
+LiquidCrystal lcd(A5, A4, A3, A2, A1, 9);
 
 String alphabets[26] = {"A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"};
 
@@ -255,13 +256,12 @@ void wall_main(){
     distance = getDistance();
    while (distance != 15){
        while (distance > 15) {
-           setDir(RHT_FWD);
-           
-           distance = getDistance();
+          distance > 17 ? setDir(RHT_FWD) : setDir(SOFT_RHT);
+          distance = getDistance();
        }
        while (distance < 15) {
-           setDir(LFT_FWD);
-           distance = getDistance();
+          setDir(LFT_FWD);
+          distance = getDistance();
        }
     }     
 }
@@ -282,7 +282,11 @@ long getDistance(){
 void coolPrint(){
   String c1output;
   String c2output;
+  String event = "PROJECTX";
   int rand1, rand2;
+  lcd.setCursor(0, 0);
+  lcd.print("      XIII      ");
+  delay(1000);
   for (int i = 0; i < 25; i++){
     c1output = "";
     c2output = "";
@@ -295,35 +299,31 @@ void coolPrint(){
         Serial.println(c2output);
     }
 
-    // Serial.println(c2output);
+    Serial.println(c2output);
     lcd.setCursor(0, 0);
     lcd.print(c1output);
     lcd.setCursor(0, 1);
     lcd.print(c2output);
 
-    printPartial13(5, 'X', i, 0);
-    printPartial13(10, 'I', i, 1);
-    printPartial13(15, 'I', i, 2);
-    printPartial13(20, 'I', i, 3);
-    // delay(5);
+    if (i >= 10){
+      for (int k = 0; k < 8; k += 2){
+        lcd.setCursor(k + 4, 0);
+        lcd.print(event.charAt(k));
+      }
+    }
+    if (i >= 20){
+      for (int k = 1; k < 8; k += 2){
+        lcd.setCursor(k + 4, 0);
+        lcd.print(event.charAt(k));
+      }
+    }
+    delay(50);
   }
-  lcd.setCursor(0, 0);
-  lcd.print(" XIII XIII XIII ");
-  
-  lcd.setCursor(0, 1);
-  lcd.print(" XIII XIII XIII ");
+  lcd.clear();
+  lcd.setCursor(4, 0);
+  lcd.print(event);
 }    
 
-
-void printPartial13(int check, char str, int inc, int count){
-  if (inc >= check){
-    for (int k = 0; k < 2; k++){
-        specialPrint(1 + count, k, str);
-        specialPrint(6 + count, k, str);
-        specialPrint(11 + count, k, str);      
-    }
-  }
-}
 
 void specialPrint(int col, int row, char str){
   lcd.setCursor(col, row);
