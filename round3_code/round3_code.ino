@@ -5,16 +5,20 @@ void writeMotors(int state_rt_fwd, int state_lt_fwd, int state_rt_bkd, int state
 void bt_main();
 void line_main();
 void wall_main();
-long getDistance();
-
-
+float getDistance(int trig, int echo);
+void coolPrint();
+void LEFT();
+void RIGHT();
+void specialPrint(int col, int row, char str);
 // sensor (jumper) pins
 #define BT 11 // d2 d3 d4 for ir
 #define WALL 12 // d5 d6 us 
 
 // sensor pins
-#define trig 6
-#define echo 5
+#define trig1 6
+#define echo1 5
+#define trig2 2
+#define echo2 3
 #define rx 8
 #define tx 7
 #define left 2
@@ -26,6 +30,8 @@ long getDistance();
 #define LFT_FWD 3
 #define SOFT_RHT 4
 #define SOFT_LFT 5
+#define SOFT_RHT2 6
+#define SOFT_LFT2 7
 #define RHT 82
 #define LFT 76
 
@@ -45,12 +51,14 @@ const int rs = 9, en = 10, d4 = 12, d5 = 11, d6 = A0, d7 = 13;
 #include <LiquidCrystal.h>
 #include <string.h>
 #include <stdlib.h>
-
+#include <math.h>
 
 // HEADER END
+
+
 SoftwareSerial bluetooth(7, 8);
-// LiquidCrystal lcd(rs, en, d4, d5, d6, d7);
-LiquidCrystal lcd(A5, A4, A3, A2, A1, 9);
+LiquidCrystal lcd(rs, en, d4, d5, d6, d7);
+// LiquidCrystal lcd(A5, A4, A3, A2, A1, 9);
 
 String alphabets[26] = {"A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"};
 
@@ -60,10 +68,12 @@ void setup() {
   SoftPWMSet(lt_fwd, 0);
   SoftPWMSet(rt_bkd, 0);
   SoftPWMSet(lt_bkd, 0);
-  pinMode(trig, OUTPUT);
-  pinMode(echo, INPUT);
-  pinMode(right, OUTPUT);
-  pinMode(left, OUTPUT);
+  pinMode(trig1, OUTPUT);
+  pinMode(echo1, INPUT);
+  pinMode(trig2, OUTPUT);
+  pinMode(echo2, INPUT);
+  // pinMode(right, OUTPUT);
+  // pinMode(left, OUTPUT);
   pinMode(BT, INPUT);
   pinMode(enable, OUTPUT);
   pinMode(WALL, INPUT);
@@ -77,31 +87,34 @@ void setup() {
 
 
 void loop() {
-  // digitalWrite(enable, HIGH);
-  // digitalRead(BT) == HIGH ? bt_main() : digitalRead(WALL) == HIGH ? wall_main() : line_main();
-  // testPWM();
-  // bt_main();
-  coolPrint();
-  delay(50000);
-  }
-
-
-void testPWM()
-{
-  int state;
-    
-  if(bluetooth.available()) {
-    state = bluetooth.read();
-  }
-  
-  if (state < 58){
-  state -= 48;
-  Serial.print("state before mapped is: " + String(state) + "\n");
-  state = map(state, 0, 9, 0, 255);
-  Serial.print("writing to enable with state: " + String(state) + "\n");
-  analogWrite(enable, state);
-  }
+  digitalWrite(enable, HIGH);
+  // wall_main();
+  saukha_wall_main();
+//  digitalRead(BT) == HIGH ? bt_main() : digitalRead(WALL) == HIGH ? wall_main() : line_main();
+    // long difference, dist1, dist2;
+    // dist1 = getDistance(trig1, echo1);
+    // dist2 = getDistance(trig2, echo2);
+    // difference = dist1 - dist2;
+    // Serial.println("Difference = " + String(dist1) + " - " + String(dist2) + " = " + String(difference));
 }
+
+
+// void testPWM()
+// {
+//   int state;
+    
+//   if(bluetooth.available()) {
+//     state = bluetooth.read();
+//   }
+  
+//   if (state < 58){
+//   state -= 48;
+//   Serial.print("state before mapped is: " + String(state) + "\n");
+//   state = map(state, 0, 9, 0, 255);
+//   Serial.print("writing to enable with state: " + String(state) + "\n");
+//   analogWrite(enable, state);
+//   }
+// }
 
 
 void writeMotors(int state_rt_fwd, int state_lt_fwd, int state_rt_bkd, int state_lt_bkd)
@@ -124,26 +137,34 @@ void setDir(int direction){
     break;
 
     case RHT_FWD:
-      writeMotors(25 , 100, 0, 0);
+      writeMotors(100, 5, 0, 0);
     break;
 
     case LFT_FWD:
-      writeMotors(100, 25, 0, 0);
+      writeMotors(10, 85, 0, 0);
     break;
 
-    case SOFT_RHT:
-      writeMotors(50, 100, 0, 0);
+    case SOFT_LFT:
+      writeMotors(35, 85, 0, 0);
       break;
     
-    case SOFT_LFT:
-      writeMotors(100, 50, 0, 0);
+    case SOFT_RHT:
+      writeMotors(100, 30, 0, 0);
       break;
 
-    case RHT:
+    case SOFT_RHT2:
+      writeMotors(100, 55, 0, 0);
+      break;
+
+    case SOFT_LFT2:
+      writeMotors(60, 85, 0, 0);
+      break;
+
+    case LFT:
       writeMotors(0, 100, 100, 0);
     break;
 
-    case LFT:
+    case RHT:
       writeMotors(100, 0, 0, 100);
     break;
 
@@ -153,80 +174,12 @@ void setDir(int direction){
   }
 }
 
-void line_main(){
-   while(true)
-   {
-     int Left = digitalRead(left);
-     int Right = digitalRead(right);
-     
-     if( (Left==0 && Right==1) == 1) LEFT();
-     else if((Right == 0 && Left == 1) == 1) RIGHT();
-   }
-}
-
-void LEFT (void)
-{
-  setDir(RHT_FWD);
-  int Left, Right;
-  
-  while(Left == 0)
-  {
-   Left = digitalRead(left);
-   Right = digitalRead(right);
-   if(Right == 0)
-   {
-     int lprev = Left;
-     int rprev = Right;
-     setDir(0);
-     while(((lprev==Left)&&(rprev==Right))==1)
-     {
-        Left = digitalRead(left);
-        Right = digitalRead(right);
-     }
-   }
-   setDir(RHT_FWD); 
-  }
-  setDir(FWD);
-}
-
-void RIGHT (void)
-{
-  int Right, Left;
-  setDir(LFT_FWD);
-  while(Right==0)
-  {
-   Left=digitalRead(left);
-   Right=digitalRead(right);
-   if(Left==0)
-   {
-     int lprev=Left;
-     int rprev=Right;
-    setDir(0);
-     while(((lprev==Left)&&(rprev==Right))==1)
-     {
-        Left=digitalRead(left);
-        Right=digitalRead(right);
-     }
-   }
-   setDir(LFT_FWD);
-   }
-  setDir(FWD);
-}
 
 void bt_main(){
     int state;
     
     if(bluetooth.available()) {
       state = bluetooth.read();
-//      Serial.println(state);
-    }
-    
-    if (state < 58){
-      state -= 48;
-      Serial.print("state before mapped is: " + String(state) + "\n");
-      state = map(state, 0, 9, 0, 255);
-      Serial.print("writing to enable with state: " + String(state) + "\n");
-      analogWrite(enable, state);
     }
     switch(state){
         case 70:
@@ -247,35 +200,76 @@ void bt_main(){
         case 83:
             setDir(0);
             break;
+        case 88:
+          coolPrint();
+          break;
+        case 120:
+          lcd.clear();
+        break;
     }
 }
 
 void wall_main(){
-    unsigned long long distance;
-    setDir(FWD);
-    distance = getDistance();
-   while (distance != 15){
-       while (distance > 15) {
-          distance > 17 ? setDir(RHT_FWD) : setDir(SOFT_RHT);
-          distance = getDistance();
-       }
-       while (distance < 15) {
-          setDir(LFT_FWD);
-          distance = getDistance();
-       }
-    }     
+    int velocityL, velocityR, percentageVelocity;
+    long difference;
+    const int dist = 0.74, carLength = 255, maxVelocity = 2.22;
+    float angle;
+    difference = getDifference();
+    angle = atan2(difference, carLength);
+    Serial.println("Angle: " + String(angle) + " Difference: " + String(difference));
+    if (angle < 0){
+      velocityL = ((2 * dist) / cos(angle)) - maxVelocity;
+      percentageVelocity = (velocityL / maxVelocity) * 100;
+      writeMotors(100, percentageVelocity, 0, 0);
+    } else if(angle > 0) {
+      velocityR = ((2 * dist) / cos(angle)) - maxVelocity;
+      percentageVelocity = (velocityR / maxVelocity) * 100;
+      writeMotors(percentageVelocity, 100, 0, 0);
+    } else if(angle == 0){
+      writeMotors(100, 100, 0, 0);
+    }
+    
 }
 
-long getDistance(){
-    unsigned long duration, distance;
+
+void saukha_wall_main(){
+  float difference;
+  difference = getDifference();
+       Serial.println(difference);
+  while (difference){
+    while (difference > 0){
+       difference < 2 ? setDir(SOFT_LFT2) : difference < 5 ? setDir(SOFT_LFT) : setDir(LFT_FWD); 
+       difference = getDifference();
+       Serial.println(difference);
+    }
+    
+    while (difference < 0)
+    {
+      difference > -2 ? setDir(SOFT_RHT2) : difference > -5 ? setDir(SOFT_RHT) : setDir(RHT_FWD);
+      difference = getDifference();
+       Serial.println(difference);
+    }
+  }
+}
+
+
+float getDifference()
+{
+  float sonar1, sonar2;
+  sonar1 = getDistance(trig1, echo1);
+  sonar2 = getDistance(trig2, echo2);
+  return sonar1 - sonar2;
+}
+
+float getDistance(int trig, int echo){
+    unsigned long duration;
     digitalWrite(trig, LOW);
     delayMicroseconds(2);
     digitalWrite(trig, HIGH);
     delayMicroseconds(5);
     digitalWrite(trig, LOW);
     duration = pulseIn(echo, HIGH);
-    distance = duration * 0.034 / 2;
-    return distance;
+    return duration * 0.034 / 2;
 }
 
 
@@ -294,9 +288,8 @@ void coolPrint(){
         rand1 = rand() % 26;
         rand2 = rand() % 26;
         Serial.println(rand2);
-        c1output += alphabets[rand1];
-        c2output += alphabets[rand2];
-        Serial.println(c2output);
+        c1output += rand1;
+        c2output += rand2;
     }
 
     Serial.println(c2output);
@@ -317,15 +310,19 @@ void coolPrint(){
         lcd.print(event.charAt(k));
       }
     }
-    delay(50);
   }
   lcd.clear();
   lcd.setCursor(4, 0);
   lcd.print(event);
+  delay(1000);
 }    
 
 
 void specialPrint(int col, int row, char str){
   lcd.setCursor(col, row);
   lcd.print(str);
+}
+
+void line_main(){
+  analogWrite(enable, 110);
 }
