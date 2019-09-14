@@ -15,15 +15,19 @@ void specialPrint(int col, int row, char str);
 #define WALL 12 // d5 d6 us 
 
 // sensor pins
-#define trig1 6
-#define echo1 5
-#define trig2 2
-#define echo2 3
-#define rx 8
-#define tx 7
-#define left 2
-#define right 3
+#define trig1 6 // first ultrasonic trig pin
+#define echo1 5 // first ultrasonic echo pin
+#define trig2 2 // second ultrasonic trig pin
+#define echo2 3 // second ultrasonic echo pin
+#define rx 8  // rx pin (to tx) for bluetooth
+#define tx 7  // tx pin (to rx) for bluetooth
+#define left 2 // left ir sensor digital pin
+#define right 3 // right ir sensor digital pin
 
+//potentiometer pin
+#define pot A6
+
+// definitions for setDir()
 #define FWD 70
 #define BKD 66
 #define RHT_FWD 2
@@ -68,6 +72,7 @@ void setup() {
   SoftPWMSet(lt_fwd, 0);
   SoftPWMSet(rt_bkd, 0);
   SoftPWMSet(lt_bkd, 0);
+  pinMode(pot, INPUT);
   pinMode(trig1, OUTPUT);
   pinMode(echo1, INPUT);
   pinMode(trig2, OUTPUT);
@@ -87,34 +92,9 @@ void setup() {
 
 
 void loop() {
-  digitalWrite(enable, HIGH);
-  // wall_main();
-  saukha_wall_main();
+//  analogWrite(enable, analogRead(pot));
 //  digitalRead(BT) == HIGH ? bt_main() : digitalRead(WALL) == HIGH ? wall_main() : line_main();
-    // long difference, dist1, dist2;
-    // dist1 = getDistance(trig1, echo1);
-    // dist2 = getDistance(trig2, echo2);
-    // difference = dist1 - dist2;
-    // Serial.println("Difference = " + String(dist1) + " - " + String(dist2) + " = " + String(difference));
 }
-
-
-// void testPWM()
-// {
-//   int state;
-    
-//   if(bluetooth.available()) {
-//     state = bluetooth.read();
-//   }
-  
-//   if (state < 58){
-//   state -= 48;
-//   Serial.print("state before mapped is: " + String(state) + "\n");
-//   state = map(state, 0, 9, 0, 255);
-//   Serial.print("writing to enable with state: " + String(state) + "\n");
-//   analogWrite(enable, state);
-//   }
-// }
 
 
 void writeMotors(int state_rt_fwd, int state_lt_fwd, int state_rt_bkd, int state_lt_bkd)
@@ -137,27 +117,27 @@ void setDir(int direction){
     break;
 
     case RHT_FWD:
-      writeMotors(100, 5, 0, 0);
+      writeMotors(5, 100, 0, 0);
     break;
 
     case LFT_FWD:
-      writeMotors(10, 85, 0, 0);
+      writeMotors(85, 10, 0, 0);
     break;
 
     case SOFT_LFT:
-      writeMotors(35, 85, 0, 0);
+      writeMotors(85, 35, 0, 0);
       break;
     
     case SOFT_RHT:
-      writeMotors(100, 30, 0, 0);
+      writeMotors(30, 100, 0, 0);
       break;
 
     case SOFT_RHT2:
-      writeMotors(100, 55, 0, 0);
+      writeMotors(55, 100, 0, 0);
       break;
 
     case SOFT_LFT2:
-      writeMotors(60, 85, 0, 0);
+      writeMotors(85, 60, 0, 0);
       break;
 
     case LFT:
@@ -176,6 +156,7 @@ void setDir(int direction){
 
 
 void bt_main(){
+  analogWrite(enable, analogRead(pot));
     int state;
     
     if(bluetooth.available()) {
@@ -210,6 +191,7 @@ void bt_main(){
 }
 
 void wall_main(){
+    analogWrite(enable, analogRead(pot));
     int velocityL, velocityR, percentageVelocity;
     long difference;
     const int dist = 0.74, carLength = 255, maxVelocity = 2.22;
@@ -233,6 +215,7 @@ void wall_main(){
 
 
 void saukha_wall_main(){
+  analogWrite(enable, analogRead(pot));
   float difference;
   difference = getDifference();
        Serial.println(difference);
@@ -251,6 +234,21 @@ void saukha_wall_main(){
     }
   }
 }
+
+
+void debug(){
+  digitalWrite(enable, HIGH);
+  setDir(FWD);
+  delay(5000);
+  setDir(BKD);
+  delay(5000);
+  setDir(LFT);
+  delay(5000);
+  setDir(RHT);
+  delay(5000);
+  setDir(1);
+  delay(10000);
+  }
 
 
 float getDifference()
@@ -324,5 +322,5 @@ void specialPrint(int col, int row, char str){
 }
 
 void line_main(){
-  analogWrite(enable, 110);
+  analogWrite(enable, analogRead(pot));
 }

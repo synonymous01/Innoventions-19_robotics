@@ -2,43 +2,51 @@
 
 void setDir(int direction);
 void writeMotors(int state_rt_fwd, int state_lt_fwd, int state_rt_bkd, int state_lt_bkd);
-void bt_main();
-void line_main();
-void wall_main();
+
 
 
 // sensor (jumper) pins
-#define BT 20
-#define WALL 22
+#define BT 11
+#define WALL 12
 
 // sensor pins
-#define trig 12
-#define echo 13
-#define rx 0
-#define tx 1
-#define send 23
-#define reci 24
+#define trig1 6 // first ultrasonic trig pin
+#define echo1 5 // first ultrasonic echo pin
+#define trig2 2 // second ultrasonic trig pin
+#define echo2 3 // second ultrasonic echo pin
+#define rx 8  // rx pin (to tx) for bluetooth
+#define tx 7  // tx pin (to rx) for bluetooth
+#define left 2 // left ir sensor digital pin
+#define right 3 // right ir sensor digital pin
 
-#define FWD 0
-#define BKD 1
+//potentiometer pin
+#define pot A6
+
+// definitions for setDir()
+#define FWD 70
+#define BKD 66
 #define RHT_FWD 2
 #define LFT_FWD 3
-#define RHT 4
-#define LFT 5
+#define RHT 82
+#define LFT 76
 
 //L293D pins
-#define rt_fwd 15
-#define lt_fwd 16
-#define lt_bkd 18
-#define rt_bkd 19
+#define rt_fwd A2 // right motors run forwards
+#define lt_fwd A4 // left motors run forwards
+#define lt_bkd A1 // left motors run backwards
+#define rt_bkd A5 // right motors run backwards
+#define enable A3 // enable pin to activate motors
+
+// HEADER END
+
+void setup()
+{
+}
 
 
-#include <NewPing.h>
-
-void setup(){}
-
-
-void loop(){}
+void loop()
+{
+}
 
 
 void writeMotors(int state_rt_fwd, int state_lt_fwd, int state_rt_bkd, int state_lt_bkd)
@@ -49,9 +57,14 @@ void writeMotors(int state_rt_fwd, int state_lt_fwd, int state_rt_bkd, int state
   digitalWrite(lt_bkd, state_lt_bkd);
 }
 
-
-void setDir(int direction){
-  switch(direction){
+// setDir(FWD); makes the car go forwards
+// setDir(BKD); makes the car go backwards
+// setDir(RHT); makes the car point-turn clockwise
+// setDir(LFT); makes the car point-turn anti-clockwise
+void setDir(int direction)
+{
+  switch(direction)
+  {
     case FWD:
       writeMotors(HIGH, HIGH, LOW, LOW);
     break;
@@ -60,12 +73,12 @@ void setDir(int direction){
       writeMotors(LOW, LOW, HIGH, HIGH);
     break;
 
-    case RHT_FWD:
-      writeMotors(LOW, HIGH, LOW, LOW);
+    case RHT:
+      writeMotors(LOW, HIGH, HIGH, LOW);
     break;
 
-    case LFT_FWD:
-      writeMotors(HIGH, LOW, LOW, LOW);
+    case LFT:
+      writeMotors(HIGH, LOW, LOW, HIGH);
     break;
   }
 }
