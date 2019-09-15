@@ -94,6 +94,7 @@ void setup() {
 void loop() {
 //  analogWrite(enable, analogRead(pot));
 //  digitalRead(BT) == HIGH ? bt_main() : digitalRead(WALL) == HIGH ? wall_main() : line_main();
+  Serial.println(String(digitalRead(right)) + String(digitalRead(left)));
 }
 
 
@@ -323,4 +324,8 @@ void specialPrint(int col, int row, char str){
 
 void line_main(){
   analogWrite(enable, analogRead(pot));
+  int r, l;
+  r = digitalRead(right);
+  l = digitalRead(left);
+  r && l ? writeMotors(100, 100, 0, 0) : r && !l ? writeMotors(0, 100, 100, 0) : writeMotors(100, 0, 0, 100);
 }
