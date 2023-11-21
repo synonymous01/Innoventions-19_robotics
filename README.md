@@ -1,5 +1,5 @@
 ﻿# Innoventions 2019 Project X
- ## Robotics competition for high school students
+ ## A Robotics competition I designed in high school for high school students
 
 This repository contains arduino code to run small rovers with three configurations:
 - Line following
